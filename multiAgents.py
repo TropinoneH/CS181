@@ -170,20 +170,19 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
     def min_state(self, gameState: GameState, depth: int, agentIndex: int):
         actions = gameState.getLegalActions(agentIndex)
-        all_actions = []
+        min_score = float("inf")
         if len(actions) == 0:
             return self.evaluationFunction(gameState)
         for action in actions:
             next_state = gameState.getNextState(agentIndex, action)
             if agentIndex == gameState.getNumAgents() - 1:
                 if depth == self.depth - 1 or len(next_state.getLegalActions(0)) == 0:
-                    all_actions.append(self.evaluationFunction(next_state))
+                    min_score = min(min_score, self.evaluationFunction(next_state))
                 else:
-                    all_actions.append(self.max_state(next_state, depth + 1)[0])
+                    min_score = min(min_score, self.max_state(next_state, depth + 1)[0])
             else:
-                all_actions.append(self.min_state(next_state, depth, agentIndex + 1))
-        return min(all_actions)
-
+                min_score = min(min_score, self.min_state(next_state, depth, agentIndex + 1))
+        return min_score
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
     Your minimax agent with alpha-beta pruning (question 3)
