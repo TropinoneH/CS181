@@ -205,27 +205,28 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
     def max_state(self, gameState: GameState, depth: int, alpha: float, beta: float):
         actions = gameState.getLegalActions(0)
 
-        v = float("-inf")
+        score = float("-inf")
         selected = None
 
         for action in actions:
             next_state = gameState.getNextState(0, action)
             if next_state.isWin() or next_state.isLose():
-                score = self.evaluationFunction(next_state)
+                score = max(score, self.evaluationFunction(next_state))
             else:
-                score = self.min_state(next_state, depth, 1, alpha, beta)
+                score = max(score, self.min_state(next_state, depth, 1, alpha, beta))
 
-            if score >= beta:
+            if score > beta:
                 return score, action
 
             if score > alpha:
                 alpha = score
                 selected = action
 
-        return alpha, selected
+        return score, selected
 
     def min_state(self, gameState: GameState, depth: int, agentIndex: int, alpha: float, beta: float):
         actions = gameState.getLegalActions(agentIndex)
+        score = float("inf")
         if len(actions) == 0:
             return self.evaluationFunction(gameState)
 
@@ -233,18 +234,18 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             next_state = gameState.getNextState(agentIndex, action)
             if agentIndex == gameState.getNumAgents() - 1:
                 if depth == self.depth - 1 or len(next_state.getLegalActions(0)) == 0:
-                    score = self.evaluationFunction(next_state)
+                    score = min(score, self.evaluationFunction(next_state))
                 else:
-                    score, _ = self.max_state(next_state, depth + 1, alpha, beta)
+                    score = min(score, self.max_state(next_state, depth + 1, alpha, beta)[0])
             else:
-                score = self.min_state(next_state, depth, agentIndex + 1, alpha, beta)
+                score = min(score, self.min_state(next_state, depth, agentIndex + 1, alpha, beta))
 
-            if score <= alpha:
+            if score < alpha:
                 return score
 
             beta = min(beta, score)
 
-        return beta
+        return score
 
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
