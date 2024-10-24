@@ -260,7 +260,39 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         legal moves.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return self.max_state(gameState, 0)[1]
+
+    def max_state(self, gameState: GameState, depth: int):
+        actions = gameState.getLegalActions(0)
+        all_actions = []
+
+        if len(actions) == 0:
+            return self.evaluationFunction(gameState), None
+
+        for action in actions:
+            next_state = gameState.getNextState(0, action)
+            if next_state.isWin() or next_state.isLose():
+                all_actions.append((self.evaluationFunction(next_state), action))
+            else:
+                all_actions.append((self.min_state(next_state, depth, 1), action))
+
+        return max(all_actions, key=lambda x: x[0])
+
+    def min_state(self, gameState: GameState, depth: int, agentIndex: int):
+        actions = gameState.getLegalActions(agentIndex)
+        scores = []
+        if len(actions) == 0:
+            return self.evaluationFunction(gameState)
+        for action in actions:
+            next_state = gameState.getNextState(agentIndex, action)
+            if agentIndex == gameState.getNumAgents() - 1:
+                if depth == self.depth - 1 or len(next_state.getLegalActions(0)) == 0:
+                    scores.append(self.evaluationFunction(next_state))
+                else:
+                    scores.append(self.max_state(next_state, depth + 1)[0])
+            else:
+                scores.append(self.min_state(next_state, depth, agentIndex + 1))
+        return sum(scores) / len(scores)
 
 
 def betterEvaluationFunction(currentGameState: GameState):
