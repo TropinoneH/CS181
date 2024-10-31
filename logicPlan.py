@@ -53,7 +53,10 @@ def sentence1() -> Expr:
     (not A) or (not B) or C
     """
     "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    a1 = Expr("A") | Expr("B")
+    a2 = ~Expr("A") % (~Expr("B") | Expr("C"))
+    a3 = disjoin(~Expr("A"), ~Expr("B"), Expr("C"))
+    return conjoin(a1, a2, a3)
     "*** END YOUR CODE HERE ***"
 
 
@@ -66,7 +69,11 @@ def sentence2() -> Expr:
     (not D) implies C
     """
     "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    a1 = Expr("C") % (Expr("B") | Expr("D"))
+    a2 = Expr("A") >> (~Expr("B") & ~Expr("D"))
+    a3 = ~(Expr("B") & ~Expr("C")) >> Expr("A")
+    a4 = ~Expr("D") >> Expr("C")
+    return conjoin(a1, a2, a3, a4)
     "*** END YOUR CODE HERE ***"
 
 
@@ -84,7 +91,14 @@ def sentence3() -> Expr:
     (Project update: for this question only, [0] and _t are both acceptable.)
     """
     "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    p0 = PropSymbolExpr('PacmanAlive', time=0)
+    p1 = PropSymbolExpr('PacmanAlive', time=1)
+    p2 = PropSymbolExpr('PacmanBorn', time=0)
+    p3 = PropSymbolExpr('PacmanKilled', time=0)
+    a1 = p1 % ((p0 & ~p3) | (~p0 & p2))
+    a2 = ~(p0 & p2)
+    a3 = p2
+    return conjoin(a1, a2, a3)
     "*** END YOUR CODE HERE ***"
 
 def findModel(sentence: Expr) -> Dict[Expr, bool]:
