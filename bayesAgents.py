@@ -100,6 +100,16 @@ def constructBayesNet(gameState: GameState):
 
     "*** YOUR CODE HERE ***"
     edges.extend([(X_POS_VAR, FOOD_HOUSE_VAR), (X_POS_VAR, GHOST_HOUSE_VAR), (Y_POS_VAR, FOOD_HOUSE_VAR), (Y_POS_VAR, GHOST_HOUSE_VAR)])
+    for housePos in gameState.getPossibleHouses():
+        for obsPos in gameState.getHouseWalls(housePos):
+            obsVar = OBS_VAR_TEMPLATE % obsPos
+            obsVars.append(obsVar)
+            variableDomainsDict[obsVar] = OBS_VALS
+            edges.extend([(FOOD_HOUSE_VAR, obsVar), (GHOST_HOUSE_VAR, obsVar)])
+    variableDomainsDict[X_POS_VAR] = X_POS_VALS
+    variableDomainsDict[Y_POS_VAR] = Y_POS_VALS
+    variableDomainsDict[FOOD_HOUSE_VAR] = HOUSE_VALS
+    variableDomainsDict[GHOST_HOUSE_VAR] = HOUSE_VALS
     "*** END YOUR CODE HERE ***"
 
     variables = [X_POS_VAR, Y_POS_VAR] + HOUSE_VARS + obsVars
