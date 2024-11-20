@@ -103,7 +103,19 @@ def joinFactors(factors: List[Factor]):
 
 
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    if len(factors) == 0:
+        return list(factors)[0]
+    setsOfConditioned = [set(factor.conditionedVariables()) for factor in factors]
+    allVar = functools.reduce(lambda x, y: x | y, setsOfConditioned + setsOfUnconditioned)
+    allUnconditionalVar = functools.reduce(lambda x, y: x | y, setsOfUnconditioned)
+    resConditionalVar = allVar - allUnconditionalVar
+    res = Factor(allUnconditionalVar, resConditionalVar, list(factors)[0].variableDomainsDict())
+    for assignment in res.getAllPossibleAssignmentDicts():
+        prob = 1
+        for factor in factors:
+            prob *= factor.getProbability(assignment)
+        res.setProbability(assignment, prob)
+    return res
     "*** END YOUR CODE HERE ***"
 
 
@@ -153,7 +165,7 @@ def eliminateWithCallTracking(callTrackingList=None):
                     "unconditionedVariables: " + str(factor.unconditionedVariables()))
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return Factor(factor.unconditionedVariables() - {eliminationVariable}, factor.conditionedVariables(), factor.variableDomainsDict())
         "*** END YOUR CODE HERE ***"
 
     return eliminate
