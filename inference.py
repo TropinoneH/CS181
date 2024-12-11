@@ -386,7 +386,13 @@ class ParticleFilter(InferenceModule):
         gameState.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        particles = []
+        self.distributions = {} if not hasattr(self, "distributions") else self.distributions
+        for particle in self.particles:
+            if particle not in self.distributions.keys():
+                self.distributions[particle] = self.getPositionDistribution(gameState, particle)
+            particles.append(self.distributions[particle].sample())
+        self.particles = particles
 
     def getBeliefDistribution(self):
         """
