@@ -180,10 +180,10 @@ class InferenceModule:
         Return the probability P(noisyDistance | pacmanPosition, ghostPosition).
         """
         "*** YOUR CODE HERE ***"
-        trueDist = manhattanDistance(pacmanPosition, ghostPosition)
+        true_dis = manhattanDistance(pacmanPosition, ghostPosition)
         if noisyDistance is None:
             return ghostPosition == jailPosition
-        return 0 if ghostPosition == jailPosition else busters.getObservationProbability(noisyDistance, trueDist)
+        return 0 if ghostPosition == jailPosition else busters.getObservationProbability(noisyDistance, true_dis)
 
     def setGhostPosition(self, gameState, ghostPosition, index):
         """
@@ -292,10 +292,10 @@ class ExactInference(InferenceModule):
         position is known.
         """
         "*** YOUR CODE HERE ***"
-        pacPos = gameState.getPacmanPosition()
-        jailPos = self.getJailPosition()
+        pac_pos = gameState.getPacmanPosition()
+        jail_pos = self.getJailPosition()
         for pos in self.allPositions:
-            self.beliefs[pos] = self.getObservationProb(observation, pacPos, pos, jailPos) * self.beliefs[pos]
+            self.beliefs[pos] = self.getObservationProb(observation, pac_pos, pos, jail_pos) * self.beliefs[pos]
         self.beliefs.normalize()
 
     def elapseTime(self, gameState: busters.GameState):
@@ -308,7 +308,18 @@ class ExactInference(InferenceModule):
         current position is known.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        belief = DiscreteDistribution()
+        for pos in self.allPositions:
+            belief[pos] = 0
+        for old_pos, p in self.beliefs.items():
+            if p == 0:
+                continue
+            pos_dist = self.getPositionDistribution(gameState, old_pos)
+            for pos in self.allPositions:
+                belief[pos] += pos_dist[pos] * p
+
+        self.beliefs = belief
+        self.beliefs.normalize()
 
     def getBeliefDistribution(self):
         return self.beliefs
