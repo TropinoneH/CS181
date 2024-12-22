@@ -213,8 +213,51 @@ class ApproximateQAgent(PacmanQAgent):
 class BetterExtractor(FeatureExtractor):
     "Your extractor entry goes here.  Add features for capsuleClassic."
 
+    def closestCap(self, pos, caps, walls):
+        fringe = [(pos[0], pos[1], 0)]
+        expanded = set()
+        while fringe:
+            pos_x, pos_y, dist = fringe.pop(0)
+            if (pos_x, pos_y) in expanded:
+                continue
+            expanded.add((pos_x, pos_y))
+            if (pos_x, pos_y) in caps:
+                return dist
+            nbrs = Actions.getLegalNeighbors((pos_x, pos_y), walls)
+            for nbr_x, nbr_y in nbrs:
+                fringe.append((nbr_x, nbr_y, dist + 1))
+        return None
+
     def getFeatures(self, state, action):
-        features = SimpleExtractor().getFeatures(state, action)
         # Add more features here
         "*** YOUR CODE HERE ***"
+        features = SimpleExtractor().getFeatures(state, action)
+
+        x, y = state.getPacmanPosition()
+        dx, dy = Actions.directionToVector(action)
+        next_x, next_y = int(x + dx), int(y + dy)
+        newPos = (next_x, next_y)
+
+        walls = state.getWalls()
+        ghosts = state.getGhostPositions()
+        features["#-of-ghosts-1-step-away"] = 0
+        for c, g in enumerate(ghosts):
+            if newPos in Actions.getLegalNeighbors(g, walls):
+                if state.getGhostStates()[c].scaredTimer <= 1:
+                    features["#-of-ghosts-1-step-away"] += 1
+        features["#-of-ghosts-1-step-away"] /= 5
+        minScaredTime = min([state.getGhostStates()[c].scaredTimer for c, _ in enumerate(ghosts)])
+        scaredNum = sum([state.getGhostStates()[c].scaredTimer != 0 for c, _ in enumerate(ghosts)])
+        capPoses = state.getCapsules()
+        # print(x, y)
+        if minScaredTime <= 10 and len(capPoses) > 0:
+            features["ClosestCap2Pac"] = self.closestCap(newPos, capPoses, walls) / (walls.width + walls.height) / 8
+        if scaredNum == 0:
+            features["ClosestCap2Pac"] *= 1.9
+        elif scaredNum < 2:
+            features["ClosestCap2Pac"] *= 2.9
+        elif scaredNum < 3:
+            features["ClosestCap2Pac"] *= 1.85
+
+        features["eats-food"] *= 10
         return features
