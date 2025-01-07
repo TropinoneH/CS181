@@ -241,13 +241,13 @@ class LanguageIDModel(object):
 
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
-        self.alpha = 0.1
-        self.w1 = nn.Parameter(self.num_chars, 256)
-        self.b1 = nn.Parameter(1, 256)
-        self.w2 = nn.Parameter(self.num_chars, 256)
-        self.h = nn.Parameter(256, 256)
-        self.b2 = nn.Parameter(1, 256)
-        self.w3 = nn.Parameter(256, len(self.languages))
+        self.alpha = 0.03
+        self.w1 = nn.Parameter(self.num_chars, 512)
+        self.b1 = nn.Parameter(1, 512)
+        self.w2 = nn.Parameter(self.num_chars, 512)
+        self.h = nn.Parameter(512, 512)
+        self.b2 = nn.Parameter(1, 512)
+        self.w3 = nn.Parameter(512, len(self.languages))
         self.b3 = nn.Parameter(1, len(self.languages))
 
     def run(self, xs):
@@ -322,7 +322,6 @@ class LanguageIDModel(object):
                 self.b2.update(grad_b2, -self.alpha)
                 self.w3.update(grad_w3, -self.alpha)
                 self.b3.update(grad_b3, -self.alpha)
-                loss = nn.as_scalar(loss)
             valid_acc = dataset.get_validation_accuracy()
 
 
