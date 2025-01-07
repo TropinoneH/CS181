@@ -364,4 +364,14 @@ class Attention(object):
         B, T, C = input.shape
 
         """YOUR CODE HERE"""
+        K = np.matmul(input, self.k_weight) # (B, 8, 5)
+        Q = np.matmul(input, self.q_weight)
+        V = np.matmul(input, self.v_weight)
+
+        attention = np.matmul(Q, K.transpose(0, 2, 1)) / np.sqrt(self.layer_size)
+        attention = np.where(self.mask == 0, float("-inf"), attention)
+        attention = nn.softmax(attention, -1)
+        output = np.matmul(attention, V)
+        return output
+
 
