@@ -308,10 +308,10 @@ class LanguageIDModel(object):
         Trains the model.
         """
         "*** YOUR CODE HERE ***"
-        batch_size = 100
+        batch_size = 150
         loss = float("inf")
         valid_acc = 0
-        while valid_acc < 0.85:
+        while valid_acc < 0.86:
             for x, y in dataset.iterate_once(batch_size):
                 loss = self.get_loss(x, y)
                 grad_w1, grad_b1, grad_w2, grad_h, grad_b2, grad_w3, grad_b3 = nn.gradients(loss, [self.w1, self.b1, self.w2, self.h, self.b2, self.w3, self.b3])
