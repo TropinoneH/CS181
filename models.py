@@ -1,5 +1,8 @@
-import nn
 import numpy as np
+
+import nn
+
+
 class PerceptronModel(object):
     def __init__(self, dimensions):
         """
@@ -59,9 +62,17 @@ class RegressionModel(object):
     numbers to real numbers. The network should be sufficiently large to be able
     to approximate sin(x) on the interval [-2pi, 2pi] to reasonable precision.
     """
+
     def __init__(self):
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
+        self.w1 = nn.Parameter(1, 32)
+        self.b1 = nn.Parameter(1, 32)
+        self.w2 = nn.Parameter(32, 32)
+        self.b2 = nn.Parameter(1, 32)
+        self.w3 = nn.Parameter(32, 1)
+        self.b3 = nn.Parameter(1, 1)
+        self.alpha = 1e-2
 
     def run(self, x):
         """
@@ -73,6 +84,10 @@ class RegressionModel(object):
             A node with shape (batch_size x 1) containing predicted y-values
         """
         "*** YOUR CODE HERE ***"
+        x = nn.ReLU(nn.AddBias(nn.Linear(x, self.w1), self.b1))
+        x = nn.ReLU(nn.AddBias(nn.Linear(x, self.w2), self.b2))
+        x = nn.AddBias(nn.Linear(x, self.w3), self.b3)
+        return x
 
     def get_loss(self, x, y):
         """
@@ -85,12 +100,34 @@ class RegressionModel(object):
         Returns: a loss node
         """
         "*** YOUR CODE HERE ***"
+        return nn.SquareLoss(self.run(x), y)
 
     def train(self, dataset):
         """
         Trains the model.
         """
         "*** YOUR CODE HERE ***"
+        allLoss = []
+        epoch = 0
+        while True:
+            lossList = []
+            # print(f'Epoch {epoch}:')
+            for x, y in dataset.iterate_once(batch_size=100):
+                loss = self.get_loss(x, y)
+                lossList.append(nn.as_scalar(loss))
+                grad_m1, grad_b1, grad_m2, grad_b2, grad_m3, grad_b3 = nn.gradients(loss, [self.w1, self.b1, self.w2, self.b2, self.w3, self.b3])
+                self.w1.update(grad_m1, -self.alpha)
+                self.b1.update(grad_b1, -self.alpha)
+                self.w2.update(grad_m2, -self.alpha)
+                self.b2.update(grad_b2, -self.alpha)
+                self.w3.update(grad_m3, -self.alpha)
+                self.b3.update(grad_b3, -self.alpha)
+            lossSum = sum(lossList)
+            allLoss.append(lossSum)
+            if len(allLoss) > 2 and allLoss[-1] > allLoss[-2]:
+                break
+            epoch += 1
+
 
 class DigitClassificationModel(object):
     """
@@ -106,6 +143,7 @@ class DigitClassificationModel(object):
     methods here. We recommend that you implement the RegressionModel before
     working on this part of the project.)
     """
+
     def __init__(self):
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
@@ -147,6 +185,7 @@ class DigitClassificationModel(object):
         """
         "*** YOUR CODE HERE ***"
 
+
 class LanguageIDModel(object):
     """
     A model for language identification at a single-word granularity.
@@ -155,6 +194,7 @@ class LanguageIDModel(object):
     methods here. We recommend that you implement the RegressionModel before
     working on this part of the project.)
     """
+
     def __init__(self):
         # Our dataset contains words from five different languages, and the
         # combined alphabets of the five languages contain a total of 47 unique
@@ -219,6 +259,7 @@ class LanguageIDModel(object):
         """
         "*** YOUR CODE HERE ***"
 
+
 class Attention(object):
     def __init__(self, layer_size, block_size):
         """
@@ -227,7 +268,7 @@ class Attention(object):
         Arguments:
             layer_size: The dimensionality of the input and output vectors.
             block_size: The size of the block for the causal mask (used to apply causal attention).
-        
+
         We initialize the weight matrices (K, Q, and V) using random normal distributions.
         The causal mask is a lower triangular matrix (a matrix of zeros above the diagonal, ones on and below the diagonal).
         """
@@ -237,10 +278,9 @@ class Attention(object):
         self.v_weight = np.random.randn(layer_size, layer_size)
 
         # Create the causal mask using numpy
-        self.mask = np.tril(np.ones((block_size, block_size)))  
-        
-        self.layer_size = layer_size
+        self.mask = np.tril(np.ones((block_size, block_size)))
 
+        self.layer_size = layer_size
 
     def forward(self, input):
         """
@@ -252,10 +292,11 @@ class Attention(object):
 
         Returns:
             output: The output tensor after applying the attention mechanism to the input.
-        
+
         Remark: remember to use the causal mask and nn.softmax (in nn.py) will be helpful.
         """
-        
+
         B, T, C = input.shape
-        
+
         """YOUR CODE HERE"""
+
