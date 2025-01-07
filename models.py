@@ -147,6 +147,15 @@ class DigitClassificationModel(object):
     def __init__(self):
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
+        self.m1 = nn.Parameter(784, 1024)
+        self.b1 = nn.Parameter(1, 1024)
+        self.m2 = nn.Parameter(1024, 240)
+        self.b2 = nn.Parameter(1, 240)
+        self.m3 = nn.Parameter(240, 40)
+        self.b3 = nn.Parameter(1, 40)
+        self.m4 = nn.Parameter(40, 10)
+        self.b4 = nn.Parameter(1, 10)
+        self.alpha = 0.05
 
     def run(self, x):
         """
@@ -163,6 +172,11 @@ class DigitClassificationModel(object):
                 (also called logits)
         """
         "*** YOUR CODE HERE ***"
+        x = nn.ReLU(nn.AddBias(nn.Linear(x, self.m1), self.b1))
+        x = nn.ReLU(nn.AddBias(nn.Linear(x, self.m2), self.b2))
+        x = nn.ReLU(nn.AddBias(nn.Linear(x, self.m3), self.b3))
+        x = nn.AddBias(nn.Linear(x, self.m4), self.b4)
+        return x
 
     def get_loss(self, x, y):
         """
@@ -178,12 +192,34 @@ class DigitClassificationModel(object):
         Returns: a loss node
         """
         "*** YOUR CODE HERE ***"
+        return nn.SoftmaxLoss(self.run(x), y)
 
     def train(self, dataset):
         """
         Trains the model.
         """
         "*** YOUR CODE HERE ***"
+        allAcc = []
+        while True:
+            lossList = []
+            for x, y in dataset.iterate_once(batch_size=100):
+                loss = self.get_loss(x, y)
+                lossList.append(nn.as_scalar(loss))
+                grad_m1, grad_b1, grad_m2, grad_b2, grad_m3, grad_b3, grad_m4, grad_b4 = nn.gradients(
+                    loss, [self.m1, self.b1, self.m2, self.b2, self.m3, self.b3, self.m4, self.b4]
+                )
+                self.m1.update(grad_m1, -self.alpha)
+                self.b1.update(grad_b1, -self.alpha)
+                self.m2.update(grad_m2, -self.alpha)
+                self.b2.update(grad_b2, -self.alpha)
+                self.m3.update(grad_m3, -self.alpha)
+                self.b3.update(grad_b3, -self.alpha)
+                self.m4.update(grad_m4, -self.alpha)
+                self.b4.update(grad_b4, -self.alpha)
+            validAcc = dataset.get_validation_accuracy()
+            allAcc.append(validAcc)
+            if len(allAcc) > 3 and allAcc[-1] < allAcc[-3]:
+                break
 
 
 class LanguageIDModel(object):
@@ -205,6 +241,14 @@ class LanguageIDModel(object):
 
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
+        self.alpha = 0.1
+        self.w1 = nn.Parameter(self.num_chars, 256)
+        self.b1 = nn.Parameter(1, 256)
+        self.w2 = nn.Parameter(self.num_chars, 256)
+        self.h = nn.Parameter(256, 256)
+        self.b2 = nn.Parameter(1, 256)
+        self.w3 = nn.Parameter(256, len(self.languages))
+        self.b3 = nn.Parameter(1, len(self.languages))
 
     def run(self, xs):
         """
@@ -236,6 +280,11 @@ class LanguageIDModel(object):
                 (also called logits)
         """
         "*** YOUR CODE HERE ***"
+        h_i = nn.ReLU(nn.AddBias(nn.Linear(xs[0], self.w1), self.b1))
+        for char in xs[1:]:
+            h_i = nn.ReLU(nn.AddBias(nn.Add(nn.Linear(char, self.w2), nn.Linear(h_i, self.h)), self.b2))
+        output = nn.AddBias(nn.Linear(h_i, self.w3), self.b3)
+        return output
 
     def get_loss(self, xs, y):
         """
@@ -252,12 +301,29 @@ class LanguageIDModel(object):
         Returns: a loss node
         """
         "*** YOUR CODE HERE ***"
+        return nn.SoftmaxLoss(self.run(xs), y)
 
     def train(self, dataset):
         """
         Trains the model.
         """
         "*** YOUR CODE HERE ***"
+        batch_size = 100
+        loss = float("inf")
+        valid_acc = 0
+        while valid_acc < 0.85:
+            for x, y in dataset.iterate_once(batch_size):
+                loss = self.get_loss(x, y)
+                grad_w1, grad_b1, grad_w2, grad_h, grad_b2, grad_w3, grad_b3 = nn.gradients(loss, [self.w1, self.b1, self.w2, self.h, self.b2, self.w3, self.b3])
+                self.w1.update(grad_w1, -self.alpha)
+                self.b1.update(grad_b1, -self.alpha)
+                self.w2.update(grad_w2, -self.alpha)
+                self.h.update(grad_h, -self.alpha)
+                self.b2.update(grad_b2, -self.alpha)
+                self.w3.update(grad_w3, -self.alpha)
+                self.b3.update(grad_b3, -self.alpha)
+                loss = nn.as_scalar(loss)
+            valid_acc = dataset.get_validation_accuracy()
 
 
 class Attention(object):
